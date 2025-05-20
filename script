@@ -1,0 +1,76 @@
+const currencyUnit = {
+  "PENNY": 0.01,
+  "NICKEL": 0.05,
+  "DIME": 0.1,
+  "QUARTER": 0.25,
+  "ONE": 1,
+  "FIVE": 5,
+  "TEN": 10,
+  "TWENTY": 20,
+  "ONE HUNDRED": 100
+};
+
+let price = 19.5;
+let cid = [
+  ["PENNY", 0.5],
+  ["NICKEL", 0],
+  ["DIME", 0],
+  ["QUARTER", 0],
+  ["ONE", 0],
+  ["FIVE", 0],
+  ["TEN", 0],
+  ["TWENTY", 0],
+  ["ONE HUNDRED", 0]
+];
+
+document.getElementById("purchase-btn").addEventListener("click", () => {
+  const cash = parseFloat(document.getElementById("cash").value);
+  const changeDue = document.getElementById("change-due");
+
+  if (cash < price) {
+    alert("Customer does not have enough money to purchase the item");
+    return;
+  } else if (cash === price) {
+    changeDue.textContent = "No change due - customer paid with exact cash";
+    return;
+  }
+
+  let change = cash - price;
+  let totalCID = parseFloat(cid.reduce((sum, curr) => sum + curr[1], 0).toFixed(2));
+  let changeArray = [];
+
+  if (totalCID < change) {
+    changeDue.textContent = "Status: INSUFFICIENT_FUNDS";
+    return;
+  }
+
+  let reversedCID = [...cid].reverse();
+  for (let [unit, amount] of reversedCID) {
+    let value = currencyUnit[unit];
+    let used = 0;
+    while (change >= value && amount > 0) {
+      change -= value;
+      change = parseFloat(change.toFixed(2));
+      amount -= value;
+      used += value;
+    }
+    if (used > 0) changeArray.push([unit, used]);
+  }
+
+  let remaining = parseFloat(change.toFixed(2));
+  if (remaining > 0) {
+    changeDue.textContent = "Status: INSUFFICIENT_FUNDS";
+  } else if (parseFloat(cid.reduce((acc, curr) => acc + curr[1], 0).toFixed(2)) === (cash - price)) {
+    let closedString = "Status: CLOSED";
+    for (let [unit, val] of changeArray) {
+      closedString += ` ${unit}: $${val.toFixed(2)}`;
+    }
+    changeDue.textContent = closedString;
+  } else {
+    let openString = "Status: OPEN";
+    for (let [unit, val] of changeArray) {
+      openString += ` ${unit}: $${val.toFixed(2)}`;
+    }
+    changeDue.textContent = openString;
+  }
+});
